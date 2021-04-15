@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FK</title>
+        <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Roboto&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+    
+        <header>
+            <ul class="header_buttons">
+                <il class="header_item"><button class="header_button" id="light_mode_button"><i class="fas fa-sun"></i></button></il>
+                <il class="header_item"><button class="header_button" id="dark_mode_button"><i class="fas fa-moon"></i></button></il>
+                <il class="header_item"><button class="header_button" id="PL_button">PL</button></il>
+                <il class="header_item"><button class="header_button" id="EN_button">EN</button></il>
+                <il class="header_item"><button class="header_button" id="menu_button"><i class="fas fa-bars"></i></button></il>
+            </ul>
+
+            <nav class="menu" id="menu_id">
+                <ul class="menu_list">
+                    <li class="menu_item"><a href="#" class="menu_link"></a></li>
+                    <li class="menu_item"><a href="covid.php" class="menu_link"></a></li>
+                    <li class="menu_item"><a href="pierdolnik.php" class="menu_link"></a></li>
+                </ul>
+            </nav>
+        </header>
+
+            <div class="input_screen">
+                <div id="server_div">
+                    <div id="input">
+                        <input type="text" id="server_input">
+                        <button class="header_button  player_button" id="search_button"><i class="fas fa-exchange-alt"></i></button>
+                    </div>
+                    <p id="server_text">wait</p>
+                    <div id="player"></div>
+                    <div id="buttons">
+                        <button class="header_button player_button" id="backward_button"><i class="fas fa-backward"></i></button>
+                        <button class="header_button player_button" id="play_button"><i class="fas fa-play"></i></i></button>
+                        <button class="header_button player_button" id="pause_button"><i class="fas fa-pause"></i></i></button>
+                        <button class="header_button player_button" id="forward_button"><i class="fas fa-forward"></i></button>
+                        <button class="header_button player_button" id="refresh_button"><i class="fas fa-redo"></i></button>
+
+                    </div>
+                </div>
+            </div>
+
+        <script>
+            
+            //node server
+            const ws = new WebSocket('ws://165.22.68.228:5000')
+
+            //yt API
+            let tag = document.createElement('script');
+
+            tag.src = "https://www.youtube.com/iframe_api";
+            let firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+            let player;
+            function onYouTubeIframeAPIReady() {
+                player = new YT.Player('player', {
+                height: '480',
+                width: '854',
+                videoId: '',
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                },
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0, 
+                    'autohide': 1,
+                    'showinfo' : 1,
+                    //'wmode': 'opaque',
+                    'rel': 0,
+                    'loop': 1 
+                    }
+                })
+            }
+            
+            let ready = false
+            let first_start = true
+            const time_diff = .15
+
+            function onPlayerReady(event) {
+                event.target.playVideo();
+                ready = true
+            }
+
+            function onPlayerStateChange(event){
+                if (event.data == 0){
+                    console.log('video ended')
+                }
+                else if (event.data == 1){
+                    if (message.video.time == 0){
+                        first_start = false
+                    }
+                    if (first_start == false){
+                        console.log('video playing from '+ player.getCurrentTime())
+                        message.video.playing = true
+                        message.video.time = player.getCurrentTime()
+                        message.type = 'normal'
+                        ws.send(JSON.stringify(message))
+                    }
+                    else{
+                        first_start = false
+                        if (Math.abs(player.getCurrentTime() - message.video.time) >= time_diff){
+                            console.log('time to seek: ' + message.video.time)
+                            player.seekTo(message.video.time)
+                        }
+                    }
+                   
+                }
+                else if (event.data == 2){
+                    console.log('video paused at '+ player.getCurrentTime())
+                    message.video.playing = false
+                    message.video.time = player.getCurrentTime()
+                    message.type = 'normal'
+                    ws.send(JSON.stringify(message))
+                }
+                else if (event.data == 3){
+                    console.log('test')
+                    player.playVideo()
+                }
+                else if (event.data == -1){
+                    console.log('test')
+                    player.playVideo()
+                }
+            }
+
+            //message
+
+            const message = {video: {
+                                id: "",
+                                link: "",
+                                time: 0,
+                                playing: true
+                                },
+                           type: "normal" 
+            }
+            
+            //message display
+
+            //const message_window = document.getElementById('message_window')
+
+            //buttons
+            const search_button = document.getElementById('search_button')
+            const play_button = document.getElementById('play_button')
+            const pause_button = document.getElementById('pause_button')
+            const forward_button = document.getElementById('forward_button')
+            const backward_button = document.getElementById('backward_button')
+            const refresh_button = document.getElementById('refresh_button')
+
+            search_button.addEventListener('click', () =>{
+                message.video.link = document.getElementById('server_input').value
+                message.video.time = player.getCurrentTime()
+                message.video.playing = true
+                message.type = 'normal'
+                ws.send(JSON.stringify(message))
+            })
+            play_button.addEventListener('click', () =>{
+                player.playVideo()
+            })
+            pause_button.addEventListener('click', () =>{
+                player.pauseVideo()
+            })
+            forward_button.addEventListener('click', () =>{
+                message.video.time = player.getCurrentTime() + 5
+                message.type = 'normal'
+                ws.send(JSON.stringify(message))
+            })
+            backward_button.addEventListener('click', () =>{
+                message.video.time = player.getCurrentTime() - 5
+                message.type = 'normal'
+                ws.send(JSON.stringify(message))
+            })
+
+            refresh_button.addEventListener('click', () =>{
+                message.video.time = 0
+                message.type = 'normal'
+                ws.send(JSON.stringify(message))
+                /*
+                //???
+                let style = window.getComputedStyle(document.getElementById('server_div'), null);
+                let height = style.getPropertyValue('height')
+                console.log(height.toString())
+                message_window.setAttribute('style', 'height: ' + 500 + 'px')
+
+                message_window.innerHTML = 'id: ' + message.video.id
+                console.log('test: ' + player.getVideoData()['video_id'])
+                message_window.innerHTML += '</br>time: ' + message.video.time
+
+                //message.video.id = player.getVideoData()['video_id']
+                //console.log(player.getVideoData())
+                console.log(player.getPlayerState())
+                */
+            })
+            
+            ws.addEventListener("open", () =>{
+                console.log('connected to server')
+                document.getElementById('server_text').innerHTML += ', connected to server.'
+            })
+
+            ws.addEventListener('message', msg =>{
+                e = JSON.parse(msg.data)
+                console.log('if from server: ' + e.video.id)
+                console.log('message form server: ' + msg.data)
+                
+                if (e.type == 'normal'){
+                    changeVideo(e.video.id, e.video.time, e.video.playing)
+                    if (Math.abs(player.getCurrentTime() - e.video.time) >= time_diff){
+                            console.log('time to seek: ' + e.video.time)
+                            player.seekTo(e.video.time)
+                    }
+                }
+                else if (e.type == 'return'){
+                    //message.video.id = player.getVideoData()['video_id']
+                    console.log('update request from server, ' + message.video.id)
+                    message.video.time = player.getCurrentTime()
+                    message.type = 'return'
+
+                    if (player.getPlayerState() == 1){
+                        message.video.play = true
+                    }
+                    else if (player.getPlayerState() == 2){
+                        message.video.play = false
+                    }
+
+                    console.log('message to send: ' + JSON.stringify(message))
+                    ws.send(JSON.stringify(message))
+                }
+            })
+
+            function changeVideo(id, time, play){
+                if (ready == true){
+                    console.log('test id: ' + id)
+                    if (id != message.video.id){
+                        document.getElementById('server_text').innerHTML = 'Watch it together'
+                        player.loadVideoById(id, 0, "default")
+                    }
+
+                    if (play != message.video.playing){
+                        if (play == true){
+                            player.playVideo()
+                        }
+                        else if(play == false){
+                            player.pauseVideo()
+                        }
+                    }     
+
+                    message.video.id = id
+                    message.video.link = e.video.link
+                    message.video.playing = play
+                    message.video.time = time
+                    message.type = 'normal'
+                }
+                else{
+                    document.getElementById('server_text').innerHTML = 'player not loaded yet'
+                    setTimeout(function(){ changeVideo(id, time, play) }, 10)
+                }
+            }
+            
+        </script>
+        
+        <script src="js/colors.js"></script>
+        <script src="js/pierdolnik.js"></script>
+    </body>
+</html>
