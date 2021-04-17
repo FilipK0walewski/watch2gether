@@ -145,6 +145,8 @@ header{
     z-index: -500;
     background: var(--font_color_0);
     color: var(--font_color_2);
+    margin-top: 25vh;
+    margin-bottom: 25vh;
     top: 0;
     bottom: 0;
     left: 0;
@@ -243,7 +245,7 @@ a:hover, .menu_link:hover{
 .screen_1{
     min-height: 100vh;
     background-position: center;
-    background-image: url(photos/los_santos.jpg);
+    background-image: url(../photos/los_santos.jpg);
     background-size: cover;
 }
 
@@ -251,7 +253,7 @@ a:hover, .menu_link:hover{
     position: relative;
     min-height: 100vh;
     background-position: center;
-    background-image: url(photos/morawiecki_0.jpg);
+    background-image: url(../photos/morawiecki_0.jpg);
     background-size: cover;
 }
 
@@ -361,7 +363,7 @@ a:hover, .menu_link:hover{
     align-items: center;
     min-height: 100vh;
     background-position: center;
-    background-image: url(photos/los_santos.jpg);
+    background-image: url(../photos/los_santos.jpg);
     background-size: cover;
 }
 
@@ -378,17 +380,6 @@ a:hover, .menu_link:hover{
     border-radius: 15px;
 }
 
-#message_window{
-    margin-left: 2em;
-    margin-top: 3.5em;
-    min-width: 10vw;
-    text-align: left;
-    background-color: rgba(0,0,0,.5);
-    padding: 2em;
-    border: 2px solid var(--font_color_0);
-    border-radius: 15px;
-}
-
 input[type=text] {
     width: 80%;
     padding: 12px 20px;
@@ -398,19 +389,79 @@ input[type=text] {
     text-decoration: none;
     border: 2px solid var(--font_color_0);
     background: transparent;
-    border-radius: 5px;
+    border-radius: 15px;
 }
 
 #input{
     position: grid;
     grid-template-columns: repeat(2, 1fr);
-    margin-bottom: 1em;
+    margin-bottom: 0em;
 }
-
+/*
 .player_button{
     margin: 0 auto;
 }
-
+*/
 #search_button{
     margin-left: 1em;
+}
+
+#buttons{
+    text-align: left;
+    height: 10vh;
+    width: 100%;
+
+    padding-left: 1em;
+    padding-right: 1em;
+    margin-top: -4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+#player{
+    margin-bottom: 0;
+    border-radius: 15px;
+}
+
+#player_and_buttons{
+    background-color: rgba(0,0,0,.8);
+    border: 2px solid var(--font_color_0);
+    border-radius: 15px;
+}
+
+#slider{
+    -webkit-appearance: none;
+    height: 10px;
+    width: 50%;
+    border-radius: 15px;
+    background-color: var(--font_color_0);
+    outline: none;
+    border: none;
+    margin: 0 .25rem;
+}
+
+#slider::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    outline: none;
+    border: none;
+
+    width: 20px;
+    height: 20px;
+    background-color: var(--title_color_0);
+    cursor: pointer;
+    border-radius: 15px;
+    transition: all .5s ease-out;
+}
+
+#slider:active::-webkit-slider-thumb{
+    background-color: var(--subtitle_color_0);
+}
+
+#play_button{
+    margin: 0 .5em;
+}
+
+#sound_button{
+    margin: 0 3em;
 }
