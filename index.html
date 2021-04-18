@@ -5,16 +5,13 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>FK</title>
-        
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Roboto&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="css/all.min.css">
         <link rel="stylesheet" href="css/style.css">
-        
     </head>
     <body>
-
         <header>
             <ul class="header_buttons">
                 <il class="header_item"><button class="header_button" id="light_mode_button"><i class="fas fa-sun"></i></button></il>
@@ -23,252 +20,45 @@
                 <il class="header_item"><button class="header_button" id="EN_button">EN</button></il>
                 <il class="header_item"><button class="header_button" id="menu_button"><i class="fas fa-bars"></i></button></il>
             </ul>
-
-            <nav class="menu" id="menu_id">
-                <ul class="menu_list">
-                    <li class="menu_item"><a href="#" class="menu_link"></a></li>
-                    <li class="menu_item"><a href="covid.php" class="menu_link"></a></li>
-                    <li class="menu_item"><a href="pierdolnik.php" class="menu_link"></a></li>
-                </ul>
-            </nav>
         </header>
-
-            <div class="input_screen">
-                <div id="server_div">
-                    <div id="input">
-                        <input type="text" id="server_input">
-                        <button class="header_button  player_button" id="search_button"><i class="fas fa-search"></i></button>
-                    </div>
-                    <p id="server_text">wait</p>
-                    <div id="player_and_buttons">
-                        <div id="player"></div>
-                        <div id="buttons">
-                            <button class="header_button player_button" id="play_button"><i class="fas fa-play"></i></button>
-                            <span id="video_time"></span> / <span id="video_duration"></span>
-                            <input type="range" id="slider" value="0"/>
-                            <button class="header_button player_button" id="sound_button"><i class="fas fa-volume-mute"></i></button>
-                        </div>
+        <div id="temp_screen">
+            <div id="nick_window" class="window">
+                <input type="text" id="nick_input" placeholder="Nick...">
+                <button class="header_button" id="nick_button"><i class="fas fa-check"></i></button>
+            </div>
+        </div>
+        <div class="input_screen">
+            <div id="online_users" class="box">
+                <p>Online users:</p>
+            </div>
+            <div class="box" id="server_div">
+                <div id="input">
+                    <input type="text" id="server_input" placeholder="Enter youtube link">
+                    <button class="header_button  player_button" id="search_button"><i class="fas fa-search"></i></button>
+                </div>
+                <!--<p id="server_text">wait</p>-->
+                <div id="player_and_buttons">
+                    <div id="player"></div>
+                    <div id="buttons">
+                        <button class="header_button player_button" id="play_button"><i class="fas fa-play"></i></button>
+                        <span id="video_time"></span> / <span id="video_duration"></span>
+                        <input type="range" id="slider" value="0"/>
+                        <button class="header_button player_button" id="sound_button"><i class="fas fa-volume-mute"></i></button>
+                        <input type="range" id="sound_slider" value="0"/>
                     </div>
                 </div>
             </div>
-
-
-        <script>
-
-            //time
-
-            let message_time = Date.now()
+            <div id="messages" class="box">
+                <div id="message_window"></div>
+                <div id="message_input">
+                    <input type="text" id="message" placeholder="Type ur message here...">
+                    <button id="send_text_message" class="header_button"><i class="fas fa-envelope"></i></button>
+                </div>
+            </div>
             
-            //node server
-            const ws = new WebSocket('ws://localhost:5000')
-
-            //yt API
-            let tag = document.createElement('script');
-
-            tag.src = "https://www.youtube.com/iframe_api";
-            let firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-            let player;
-            function onYouTubeIframeAPIReady() {
-                player = new YT.Player('player', {
-                    height: '480',
-                    width: '854',
-                    videoId: '',
-                    events: {
-                        'onReady': onPlayerReady,
-                        'onStateChange': onPlayerStateChange
-                    },
-                    playerVars: {
-                        'autoplay': 0,
-                        'autohide': 1,
-                        'showinfo': 0,
-                        'controls': 0
-                    }
-                })
-            }
-           
-            let ready = false
-            let first_start = true
-            const time_diff = 1
-            
-            function onPlayerReady(event) {
-                player.mute()
-                event.target.playVideo()
-                ready = true
-            }
-
-            function onPlayerStateChange(event){
-                if (event.data == 1){
-                    document.querySelector('#play_button i').classList.value = 'fas fa-pause'
-                    if (first_start == false){
-                        message.video.playing = true
-                        message.video.time = player.getCurrentTime()
-                        message.type = 'normal'
-                        ws.send(JSON.stringify(message))
-                    }
-                    else{
-                        let delta_time = (Date.now() - message_time) / 1000
-                        first_start = false
-                        if (Math.abs(player.getCurrentTime() - message.video.time) >= time_diff){
-                            player.seekTo(message.video.time + delta_time)
-                        }
-                    }
-                }
-                else if (event.data == 2){
-                    document.querySelector('#play_button i').classList.value = 'fas fa-play'
-                    message.video.playing = false
-                    message.video.time = player.getCurrentTime()
-                    message.type = 'normal'
-                    ws.send(JSON.stringify(message))
-                }
-            }
-
-            //message
-
-            const message = {video: {
-                                id: "",
-                                link: "",
-                                time: 0,
-                                playing: true
-                                },
-                           type: "normal" 
-            }
-
-            //buttons
-            const search_button = document.getElementById('search_button')
-            const play_button = document.getElementById('play_button')
-
-            const current_video_time = document.getElementById('video_time')
-            const video_duration = document.getElementById('video_duration')
-            const slider = document.getElementById('slider')
-
-            const sound_button = document.getElementById('sound_button')
-
-            search_button.addEventListener('click', () =>{
-                message.video.link = document.getElementById('server_input').value
-                message.video.time = player.getCurrentTime()
-                message.video.playing = true
-                message.type = 'normal'
-                ws.send(JSON.stringify(message))
-            })
-
-            play_button.addEventListener('click', () =>{
-                if (player.getPlayerState() == 2){
-                    player.playVideo()
-                }
-                else if (player.getPlayerState() == 1){
-                    player.pauseVideo()
-                }
-            })
-            /*
-            current_video_time.addEventListener('click', () =>{
-                current_video_time.innerHTML = Math.floor(player.getCurrentTime())
-                slider.value = player.getCurrentTime()
-                slider.max = player.getDuration()
-            })
-            */
-
-            slider.addEventListener('input', () =>{
-                message.video.time = slider.value
-                ws.send(JSON.stringify(message))
-            })
-
-            sound_button.addEventListener('click', () =>{
-                if (player.isMuted() == true){
-                    player.unMute()
-                    player.setVolume(50)
-                    document.querySelector('#sound_button i').classList.replace('fa-volume-mute', 'fa-volume-up')
-                }
-                else{
-                    player.mute()
-                    document.querySelector('#sound_button i').classList.replace('fa-volume-up', 'fa-volume-mute')
-                }
-            })
-            //<i class="fas fa-volume-up"></i>
-
-            function upadteTime(){
-                current_video_time.innerHTML = secondsToDisplay(player.getCurrentTime())
-                video_duration.innerHTML = secondsToDisplay(player.getDuration())
-                slider.value = player.getCurrentTime()
-                slider.max = player.getDuration()
-                setTimeout(function(){ upadteTime() }, 1000)
-            }
-
-            //websockets
-            
-            ws.addEventListener("open", () =>{
-                document.getElementById('server_text').innerHTML += ', connected to server.'
-            })
-
-            ws.addEventListener('message', msg =>{
-                e = JSON.parse(msg.data)                
-                if (message.video.id == ''){
-                    message_time = Date.now()
-                }
-                if (e.type == 'normal'){
-                    changeVideo(e.video.id, e.video.time, e.video.playing)
-                }
-                else if (e.type == 'return'){
-                    message.video.time = player.getCurrentTime()
-                    message.type = 'return'
-                    if (player.getPlayerState() == 1){
-                        message.video.play = true
-                    }
-                    else if (player.getPlayerState() == 2){
-                        message.video.play = false
-                    }
-                    ws.send(JSON.stringify(message))
-                }
-            })
-
-            function changeVideo(id, time, play){
-                if (ready == true){
-                    if (id != message.video.id){
-                        document.getElementById('server_text').innerHTML = 'Watch it together'
-                        player.loadVideoById(id, 0, "large")
-                    }
-                    if (Math.abs(player.getCurrentTime() - e.video.time) >= time_diff){
-                            player.seekTo(e.video.time)
-                    }
-                    if (play != message.video.playing){
-                        if (play == true){
-                            player.playVideo()
-                        }
-                        else if(play == false){
-                            player.pauseVideo()
-                        }
-                    }     
-                    message.video.id = id
-                    message.video.link = e.video.link
-                    message.video.playing = play
-                    message.video.time = time
-                    message.type = 'normal'
-                    upadteTime()
-                }
-                else{
-                    document.getElementById('server_text').innerHTML = 'player not loaded yet'
-                    setTimeout(function(){ changeVideo(id, time, play) }, 10)
-                }
-            }
-
-            function secondsToDisplay(seconds){
-                seconds = Math.floor(seconds)
-                let minutes = Math.floor(seconds / 60)
-                seconds = seconds - (minutes * 60)
-
-                if (seconds < 10){
-                    seconds = '0' + seconds
-                }
-                if (minutes < 10){
-                    minutes = '0' + minutes
-                }
-
-                return minutes + ':' + seconds
-            }
-        </script>
-        
+        </div>
         <script src="js/colors.js"></script>
         <script src="js/pierdolnik.js"></script>
+        <script src="js/w2g.js"></script>
     </body>
 </html>
