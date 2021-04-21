@@ -20,10 +20,17 @@ class User{
                             },
                         type: "normal",
                         user:{
-                            nick: nick
+                            nick: nick,
+                            info: ""
                         },
-                        online_users: "",
-                        text_message: ""
+                        online_users:{
+                            nicks: "",
+                            infos: ""
+                        },
+                        text_message:{
+                            text: "",
+                            sender: ""
+                        }
         }
     }
 
@@ -117,24 +124,30 @@ wss.on('connection', ws =>{
             }
             for (i = 0; i < users.length; i++){
                 if (ws == users[i].ws){
-                    temp += 1
                     users[i].message.user.nick = msg.user.nick
+                    users[i].message.user.info = msg.user.info
                 }
             }
             updateOnlineUsersAll()  
         }
         else if (msg.type == 'text_message'){
-            for (i = 0; i < users.length; i++){
-                if (users[i].ws != ws){
-                    if (users[i].message.user.nick.toLowerCase() == 'kiep'){
-                        users[i].message.text_message = users[i].message.user.nick + ' <i class="fas fa-joint"></i>: ' + msg.text_message
-                    }
-                    else{
-                        users[i].message.text_message = users[i].message.user.nick + ': ' + msg.text_message
-                    }
-                    users[i].udpadteTextMessage()
-                }  
+
+            let sender_nick = ''
+            users.forEach((user) =>{
+                if (user.ws == ws){
+                    sender_nick = user.message.user.nick
+                }
+            })
+            if (sender_nick.toLowerCase() == 'kiep'){
+                sender_nick += ' <i class="fas fa-joint"></i>'
             }
+            users.forEach((user) =>{
+                if (user.ws != ws){
+                    user.message.text_message.text = msg.text_message.text
+                    user.message.text_message.sender = sender_nick
+                    user.udpadteTextMessage()
+                }
+            })
         }
     })
 
@@ -156,12 +169,15 @@ wss.on('connection', ws =>{
 
 function updateOnlineUsersAll(){
     let online_users = ''
+    let users_info = ''
     for (i = 0; i < users.length; i++){
         online_users += users[i].message.user.nick + '_'
+        users_info += users[i].message.user.info + '_'
     }
     console.log('all users: ' + online_users)
     for (i = 0; i < users.length; i++){
-        users[i].message.online_users = online_users
+        users[i].message.online_users.nicks = online_users
+        users[i].message.online_users.infos = users_info
         users[i].updateOnlineusers()
     }
 }

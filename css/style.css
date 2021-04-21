@@ -26,6 +26,7 @@
     --font_size_1: 2.2rem;
     --font_size_2: 1.25rem;
     --font_size_3: 1rem;
+    --nick_font_size: .75rem;
 
     --shadow: 0.25em 0.25em 0.75em rgba(0,0,0,.25),
               0.125em 0.125em 0.25em rgba(0,0,0,.15);
@@ -116,11 +117,16 @@ header{
 
 .header_button{
     min-width: 3.5em;
+    color: var(--font_color_0);
     font-size: var(--font_size_3);
     cursor: pointer;
+
     margin-right: 2em;
+    margin-top: 1em;
+    margin-bottom: 1em;
     padding: .75em;
-    color: var(--font_color_0);
+
+    
     background: transparent;
     border: 2px solid var(--font_color_0);
     border-radius: 15px;
@@ -147,32 +153,25 @@ header{
 .input_screen{
     z-index: 0;
     position: relative;
+
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+
+    height: 100vh;
+    
     background-position: center;
     background-image: url(../photos/los_santos.jpg);
-    margin: 0 auto;
     background-size: cover;
-}
-
-.p_title{
-    padding-bottom: .5em;
-}
-
-.box{
-    margin-top: 3.5em;
-    text-align: center;
-    background-color: rgba(0,0,0,.5);
-    padding: 2em;
-    border: 2px solid var(--font_color_0);
-    border-radius: 15px;
+    
 }
 
 #server_div{
-    margin-left: 1em;
-    margin-right: 1em;
+    display: inline-grid;
+    justify-content: center;
+    align-items: center;
+    width: 50vw;
+    min-height: 75vh;
 }
 
 input[type=text] {
@@ -183,7 +182,7 @@ input[type=text] {
     color: var(--font_color_0);
     text-decoration: none;
     border: 2px solid var(--font_color_0);
-    background: rgba(0,0,0,.5);
+    background: var(--header_color_0);
     border-radius: 15px;
 }
 
@@ -191,6 +190,9 @@ input[type=text] {
     position: grid;
     grid-template-columns: repeat(2, 1fr);
     margin-bottom: 0em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #search_button{
@@ -216,9 +218,9 @@ input[type=text] {
 }
 
 #player_and_buttons{
+    float: none;
+    width: min-content;
     background-color: rgba(0,0,0,.9);
-    border: 2px solid var(--font_color_0);
-    border-radius: 15px;
 }
 
 #slider{
@@ -293,6 +295,7 @@ input[type=text] {
     background-color: rgba(0,0,0,.5);
     min-height: 100vh;
     min-width: 100vw;
+    transition: all .5s ease-in-out;
 }
 
 #nick_button{
@@ -304,54 +307,285 @@ input[type=text] {
     background-color: transparent;
 }
 
-#online_users{
-    padding: .5em;
-    color: var(--header_color_0);
-    width: 10vw;
-    height: 50vh;
-    overflow-y: scroll;
-    min-height: 25vh;
-    text-align: left;
+#info_input{
+    margin-left: 1em;
+    background-color: transparent;
 }
 
-#messages{
+
+#users_box{
+    background: rgba(0,0,0,.5);
+    width: 80%;
+    height: 90%;
+
+    flex-direction: column;
     color: var(--header_color_0);
-    padding: .5em;
-    width: 25vw;
-    height: 50vh;
+    overflow-y: scroll;
+    text-align: left;
+    scrollbar-color: var(--font_color_0) transparent;
+    scrollbar-width: thin;
+}
+
+/*=========================================================*/
+
+#message_box{
+    color: var(--header_color_0);
     position: relative;
 }
-
+/*mozilla scrollbar*/
 #message_window{
-    width: 100%;
-    border: 1px solid var(--font_color_0);
     border-radius: 15px;
-    height: 40vh;
+    background: rgba(0,0,0,.5);
+    width: 100%;
+    height: 85%;
     overflow-y: scroll;
+    scrollbar-color: var(--font_color_0) transparent;
+    scrollbar-width: thin;
 }
 
-#message_input{
+#message_input_and_button{
+    height: 15%;
     width: 100%;
     bottom: 0;
     position: absolute;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    left: 50%;
+    transform: translate(-50%);
+}
+
+
+
+#message_button{
+    float: right;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#emoji_button{
+    margin-left: 0;
+    margin-right: 0;
+    border-bottom: none;
+}
+
+.my_message{
+    background-color: var(--font_color_0);
+    border-radius: 15px;
+
+    margin-top: .25em;
+    margin-bottom: .25em;
+    margin-right: .5em;
+    padding: .5em;
+
+    float: right;
+    text-align: left;
+}
+
+.other_user_message{
+    color: var(--font_color_0);
+    background-color: var(--header_color_0);
+    border-radius: 15px;
+
+    margin-top: .25em;
+    margin-bottom: .25em;
+    margin-left: .5rem;
+    padding: .5em;
+
+    float: left;
+    text-align: left;
+}
+
+.message_filler{
+    width: 100%;
+    height: 0;
+    background-color: transparent;
+    float: right;
+}
+
+.sender_nick{
+    margin-bottom: .15em;
+    margin-left: .5rem;
+
+    color: var(--font_color_0);
+    font-size: var(--nick_font_size);
+
+    float: left;
+    text-align: left;
+}
+
+/*tabs*/
+
+#tabs_and_buttons{
+    min-height: 75vh;
+    width: 25vw;
+    margin-left: 1rem;
+    display: block;
+    position: relative;
+    background: rgba(0,0,0,.5);
+}
+
+#tabs_buttons{
+    height: 5%;
+    width: 90%;
+    /*centering*/
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+
+    text-align: center;
+}
+
+.tablink{
+    margin: .5rem;
+}
+
+.tabcontent{
+    height: 100%;
+    width: 100%;
+    margin-top: .5em;
+    margin-left: auto;
+    margin-right: auto;
+    display: none;
+    animation: fadeEffect 1s;
+}
+
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }
+
+.window{
+    border: var(--font_color_0) 2px solid;
+    border-radius: 15px;
+    padding: 1em;
+}
+
+#test_div{
+    display: block;
+    height: 90%;
+    width: 90%;
+
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+#change_nickname_button{
+    height: min-content;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: var(--font_size_1);
+    background-color: var(--bg_color_0);
+}
+
+#me_box{
+    width: 80%;
+    height: 80%;
+    font-size: var(--font_size_1);
+    display: none;
+    flex-direction:column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* width */
+::-webkit-scrollbar {
+width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+width: 10px;
+box-shadow: inset 0 0 1px rgb(0, 0, 0, .25);
+border-radius: 15px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+background: var(--font_color_0);
+border-radius: 15px;
+} 
+
+#tabs_buttons button{
+    transition: .5s;
+}
+
+#tabs_buttons button.active{
+    background-color: var(--bg_color_0);
+}
+
+.user_info{
+    background-color: var(--subtitle_color_0);
+    height: min-content;
+    padding: 1em;
+    margin-bottom: .5em;
+
+    margin-left: auto;
+    margin-right: auto;
+
+    width: 80%;
+    text-align: center;
+    border-radius: 15px;
+    transition: all .5s ease-in-out;
+
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-#send_text_message{
+/*
+.user_info:hover{
+    background-color: var(--disable_color_0);
+    cursor: pointer;
+}
+*/
+
+.user_icon{
     float: left;
-    margin-left: .5em;
+    text-align: center;
+    padding: 1em;
+    width: 10%;
+
+    color: var(--title_color_0);
+    border: var(--title_color_0) 2px solid;
+    border-radius: 50px;
 }
 
-#message{
-    float: left;
-}
-
-.my_message{
-    text-align: right;
-}
-
-.other_user_message{
+.user_name{
+    color: var(--title_color_0);
+    font-weight: var(--font_weight_bold);
+    font-size: var(--font_size_2);
+    padding-left: 1em;
     text-align: left;
+    float: left;
+}
+
+.poke_button{
+    width: min-content;
+    float: right;
+    border-radius: 50px;
+    margin: 0;
+
+    font-size: var(--nick_font_size);
+}
+
+.poke_button:hover{
+    background: var(--title_color_0);
+    cursor: pointer;
+}
+
+.user_d{
+    text-align: left;
+    float: left;
+    padding-left: 1em;
+}
+
+.user_name_info{
+    display: flex;
+    flex-direction: column;
+    width: 75%;
+    float: left;
 }

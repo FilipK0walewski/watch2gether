@@ -26,7 +26,7 @@ function onYouTubeIframeAPIReady() {
             'autoplay': 0,
             'autohide': 1,
             'showinfo': 0,
-            'controls': 1
+            'controls': 0
         }
     })
 }
@@ -69,7 +69,8 @@ function onPlayerStateChange(event){
 
 //message
 
-const message = {video: {
+const message = {
+                video: {
                     id: "",
                     link: "",
                     time: 0,
@@ -78,25 +79,42 @@ const message = {video: {
                type: "normal" ,
                user: {
                    nick: "",
+                   info: ""
                },
                online_users: "",
-               text_message: ""
+               text_message: {
+                   text: "",
+                   sender: ""
+               },
+               poke: {
+                   text: "",
+                   user_to_poke: ""
+               }
 }
 
 //online users
 
 const nick_button = document.getElementById('nick_button')
 const nick_input = document.getElementById('nick_input')
-nick_input.style.height = nick_button.offsetHeight + 'px'
+const info_input = document.getElementById('info_input')
 
-const online_users = document.getElementById('online_users')
+nick_input.focus()
+nick_input.select()
+nick_input.style.height = nick_button.offsetHeight + 'px'
+info_input.style.height = nick_button.offsetHeight + 'px'
+
+const online_users = document.getElementById('users_box')
+
 
 //messages
 
-const messages = document.getElementById('message_window')
-const send_message_button = document.getElementById('send_text_message')
-const message_input = document.getElementById('message')
-message_input.style.height = send_message_button.offsetHeight + 'px'
+let temp_nick = ''
+const message_window = document.getElementById('message_window')
+const message_button = document.getElementById('message_button')
+const message_input = document.getElementById('message_input')
+
+console.log('test of height: ' + message_button.offsetHeight + 'px')
+message_input.style.height = nick_button.offsetHeight + 'px'
 
 //buttons
 const search_button = document.getElementById('search_button')
@@ -110,25 +128,85 @@ const slider = document.getElementById('slider')
 
 const sound_button = document.getElementById('sound_button')
 const sound_slider = document.getElementById('sound_slider')
-sound_slider.max = 100
+sound_slider.max = 100 
 
+//reset nick btn
 
-send_message_button.addEventListener('click', () =>{
+const reset_nick = document.getElementById('change_nickname_button')
+reset_nick.addEventListener('click', () => {
+    set_property('nick', '')
+    set_property('info', '')
+    document.getElementById('temp_screen').style.display = 'flex'
+    document.getElementById('temp_screen').style.opacity = '1'
+    nick_input.value = ''
+    info_input.value = ''
+})
+
+//chat
+message_input.addEventListener('keyup', (event) =>{
+    if (event.code == 'Enter'){
+        event.preventDefault()
+        message_button.click()
+    }
+})
+
+message_button.addEventListener('click', () =>{
     if (message_input.value != ''){
-        messages.innerHTML += '<div class="my_message">' + message_input.value + '</div>'
-        message.text_message = message_input.value
+        temp_nick = ''
+        message_window.innerHTML += '<div class="my_message">' + message_input.value + '</div><div class="message_filler"></div>'
+        message.text_message.text = message_input.value
         message.type = 'text_message'
         ws.send(JSON.stringify(message))
+
         message_input.value = ''
+        message_window.scrollTo(0, message_window.scrollHeight)
+    }
+})
+
+//nick
+nick_input.addEventListener('keyup', (event) =>{
+    if (event.code == 'Enter'){
+        event.preventDefault()
+
+        if (info_input.value == ''){
+            info_input.focus()
+            info_input.select()
+        }
+        else{
+            nick_button.click()
+        }
+        
+    }
+})
+
+info_input.addEventListener('keyup', (event) =>{
+    if (event.code == 'Enter'){
+        event.preventDefault()
+        nick_button.click()
     }
 })
 
 nick_button.addEventListener('click', () =>{
-    if (nick_input.value != ''){
+    if (nick_input.value != '' && info_input.value != ''){
+
+        set_property('nick', nick_input.value)
+        set_property('info', info_input.value)
+
         message.user.nick = nick_input.value
+        message.user.info = info_input.value
         message.type = 'update_nick'
-        document.getElementById('temp_screen').remove()
+        document.getElementById('temp_screen').style.opacity = 0
+        setTimeout(function(){ document.getElementById('temp_screen').style.display = 'none' }, 1000)
+        
         ws.send(JSON.stringify(message))
+    }
+})
+
+//other
+search_input.addEventListener('keyup', (event) =>{
+    if (event.code == 'Enter'){
+        event.preventDefault()
+        search_button.click()
     }
 })
 
@@ -179,7 +257,6 @@ sound_button.addEventListener('click', () =>{
         document.querySelector('#sound_button i').classList.replace('fa-volume-up', 'fa-volume-mute')
     }
 })
-//<i class="fas fa-volume-up"></i>
 
 function upadteTime(){
     current_video_time.innerHTML = secondsToDisplay(player.getCurrentTime())
@@ -194,6 +271,14 @@ function upadteTime(){
 
 ws.addEventListener("open", () =>{
     console.log('connected to server')
+
+    //nick
+    if (first_user == false){
+        nick_input.value = get_property('nick')
+        info_input.value = get_property('info')
+        console.log(nick_button)
+        nick_button.click()
+    }
 })
 
 ws.addEventListener('message', msg =>{
@@ -216,33 +301,59 @@ ws.addEventListener('message', msg =>{
         ws.send(JSON.stringify(message))
     }
     else if (e.type == 'update_nick'){
-        online_users.innerHTML = '<p>Online users:</p>'
-        let users = getUsers(e.online_users)
-        users.forEach((item, index) =>{
-            if (item.toLowerCase() != 'kiep'){
-                online_users.innerHTML += '<p>'+ (index + 1) + '. ' + item + '  <i class="fas fa-wifi"></i></p>'
-            }
-            else{
-                online_users.innerHTML += '<p>'+ (index + 1) + '. ' + item + '  <i class="fas fa-joint"></i></p>'
-            }
-            
+        online_users.innerHTML = ''
+        document.getElementById('nickname').innerHTML = e.user.nick 
+        let users = getArrayFromString(e.online_users.nicks)
+        let infos = getArrayFromString(e.online_users.infos)
+        console.log('info: ' + infos)
+        let i = 0
+        users.forEach((user) =>{
+            online_users.innerHTML += '<div class="user_info"><div class="user_icon"><i class="fas fa-user"></i></div><div class="user_name_info"><div id="u_' + i + '" class="user_name">' + user + '</div><div class="user_d">' + infos[i] + '</div></div><button id="poke_' + i + '" class="poke_button header_button"><i class="fas fa-hand-point-left"></i></button></div>'
+            i += 1
         })
+        addPokeListeners()
     }
     else if (e.type == 'text_message'){
-        messages.innerHTML += '<div class="other_user_message">' + e.text_message + '</div>'
+        
+        if (temp_nick != e.text_message.sender){
+            message_window.innerHTML += '<div class="sender_nick">' + e.text_message.sender 
+            message_window.innerHTML += '</div><div class="message_filler"></div>'
+            temp_nick = e.text_message.sender
+        }
+        message_window.innerHTML += '<div class="other_user_message">' + e.text_message.text
+        message_window.innerHTML += '</div><div class="message_filler"></div>'
+        message_window.scrollTo(0, message_window.scrollHeight)
     }
 })
 
-function getUsers(str){
+function addPokeListeners(){
+    let poke_buttons = document.getElementsByClassName('poke_button')
+    for (i = 0; i < poke_buttons.length; i++){
+        poke_buttons[i].addEventListener('click', (event) => {
+            console.log('event target id: ' + event.target.id)
+            let id = event.target.id.charAt(event.target.id.length - 1)
+            console.log('poke id: ' + 'u_' + id)
+            console.log('user to poke: ' + document.getElementById('u_' + id).innerHTML)
+
+            message.poke.text = 'poke'
+            message.poke.user_to_poke = document.getElementById('u_' + id).innerHTML
+
+            console.log(message)
+
+        })
+    }
+}
+
+function getArrayFromString(str){
     let users = []
-    let nick = ''
+    let element = ''
     for (i = 0; i < str.length; i++){
         if (str.charAt(i) == '_'){
-            users.push(nick)
-            nick = ''
+            users.push(element)
+            element = ''
         }
         else{
-            nick += str.charAt(i)
+            element += str.charAt(i)
         }
     }
     return users
@@ -290,3 +401,4 @@ function secondsToDisplay(seconds){
 
     return minutes + ':' + seconds
 }
+

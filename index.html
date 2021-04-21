@@ -5,39 +5,31 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>FK</title>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <link rel="preconnect" href="https://fonts.gstatic.com">
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Roboto&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="css/all.min.css">
         <link rel="stylesheet" href="css/style.css">
     </head>
     <body>
         <header>
-            <ul class="header_buttons">
-                <il class="header_item"><button class="header_button" id="light_mode_button"><i class="fas fa-sun"></i></button></il>
-                <il class="header_item"><button class="header_button" id="dark_mode_button"><i class="fas fa-moon"></i></button></il>
-                <il class="header_item"><button class="header_button" id="PL_button">PL</button></il>
-                <il class="header_item"><button class="header_button" id="EN_button">EN</button></il>
-                <il class="header_item"><button class="header_button" id="menu_button"><i class="fas fa-bars"></i></button></il>
-            </ul>
+                <button class="header_button" id="light_mode_button"><i class="fas fa-sun"></i></button>
+                <button class="header_button" id="dark_mode_button"><i class="fas fa-moon"></i></button>
+                <button class="header_button" id="PL_button">PL</button>
+                <button class="header_button" id="EN_button">EN</button>
+                <button class="header_button" id="menu_button"><i class="fas fa-bars"></i></button>
         </header>
         <div id="temp_screen">
             <div id="nick_window" class="window">
                 <input type="text" id="nick_input" placeholder="Nick...">
+                <input type="text" id="info_input" placeholder="Tell me aobut yourself">
                 <button class="header_button" id="nick_button"><i class="fas fa-check"></i></button>
             </div>
         </div>
         <div class="input_screen">
-            <div id="online_users" class="box">
-                <p>Online users:</p>
-            </div>
-            <div class="box" id="server_div">
+            <div id="server_div" class="window">
                 <div id="input">
                     <input type="text" id="server_input" placeholder="Enter youtube link">
                     <button class="header_button  player_button" id="search_button"><i class="fas fa-search"></i></button>
                 </div>
-                <!--<p id="server_text">wait</p>-->
-                <div id="player_and_buttons">
+                <div id="player_and_buttons" class="window">
                     <div id="player"></div>
                     <div id="buttons">
                         <button class="header_button player_button" id="play_button"><i class="fas fa-play"></i></button>
@@ -48,17 +40,41 @@
                     </div>
                 </div>
             </div>
-            <div id="messages" class="box">
-                <div id="message_window"></div>
-                <div id="message_input">
-                    <input type="text" id="message" placeholder="Type ur message here...">
-                    <button id="send_text_message" class="header_button"><i class="fas fa-envelope"></i></button>
+
+            <div id="tabs_and_buttons" class="window">
+
+                <div id="tabs_buttons" >
+                    <button id="chat_button" class="header_button tablink" ><i class="fas fa-comments"></i></button>
+                    <button id="users_button" class="header_button tablink" ><i class="fas fa-users"></i></button>
+                    <button id="me_button" class="header_button tablink" ><i class="fas fa-user"></i></button>
                 </div>
+                
+                <div id="test_div">
+                    <div id="message_box" class="tabcontent">
+                        <div id="message_window" ></div>
+                        <div id="message_input_and_button" class="input_and_button">
+                            <input type="text" id="message_input" placeholder="Type ur message here...">
+                            <button id="emoji_button" class="header_button"><i class="fas fa-icons"></i></button>
+                            <button id="message_button" class="header_button"><i class="fas fa-envelope"></i></button>
+                        </div>
+                    </div>
+
+                    <div id="users_box" class="tabcontent window"></div>
+
+                    <div id="me_box" class="tabcontent">
+                        <p>Your name: </p>
+                        <p id="nickname">user</p>
+                        <button id="change_nickname_button" class="header_button">CHANGE NAME</button>
+                        
+                    </div>
+                </div>
+    
             </div>
             
         </div>
         <script src="js/colors.js"></script>
         <script src="js/pierdolnik.js"></script>
+        <script src = "js/tabs.js"></script>
         <script src="js/w2g.js"></script>
     </body>
 </html>
