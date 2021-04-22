@@ -25,4 +25,4 @@ function openTab(event, button_name){
     event.currentTarget.className += ' active'
 }
 
-me_button.click()
+chat_button.click()

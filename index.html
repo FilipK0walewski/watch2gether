@@ -18,56 +18,59 @@
         </header>
         <div id="temp_screen">
             <div id="nick_window" class="window">
-                <input type="text" id="nick_input" placeholder="Nick...">
-                <input type="text" id="info_input" placeholder="Tell me aobut yourself">
+                <div id="inputs">
+                    <input type="text" id="nick_input" class="first_input" placeholder="Nick...">
+                    <input type="text" id="info_input" class="first_input" placeholder="Tell me about yourself">
+                </div>
                 <button class="header_button" id="nick_button"><i class="fas fa-check"></i></button>
             </div>
         </div>
         <div class="input_screen">
-            <div id="server_div" class="window">
-                <div id="input">
+            <div id="server_div">
+                <div class="input_with_button">
                     <input type="text" id="server_input" placeholder="Enter youtube link">
                     <button class="header_button  player_button" id="search_button"><i class="fas fa-search"></i></button>
                 </div>
-                <div id="player_and_buttons" class="window">
+                <div id="player_and_buttons">
                     <div id="player"></div>
                     <div id="buttons">
-                        <button class="header_button player_button" id="play_button"><i class="fas fa-play"></i></button>
-                        <span id="video_time"></span> / <span id="video_duration"></span>
-                        <input type="range" id="slider" value="0"/>
-                        <button class="header_button player_button" id="sound_button"><i class="fas fa-volume-mute"></i></button>
-                        <input type="range" id="sound_slider" value="0"/>
+                        <button class="header_button player_button player_item" id="play_button"><i class="fas fa-play"></i></button>
+                        <span id="video_time" class="player_item"></span> / <span id="video_duration" class="player_item"></span>
+                        <input type="range" class="slider player_item" id="time_slider" value="0"/>
+                        <button class="header_button player_button player_item" id="sound_button"><i class="fas fa-volume-mute"></i></button>
+                        <input type="range" class="slider player_item" id="sound_slider" value="0"/>
                     </div>
                 </div>
             </div>
 
-            <div id="tabs_and_buttons" class="window">
+            <div id="tabs_and_buttons">
 
-                <div id="tabs_buttons" >
+                <div id="tabs_buttons">
                     <button id="chat_button" class="header_button tablink" ><i class="fas fa-comments"></i></button>
                     <button id="users_button" class="header_button tablink" ><i class="fas fa-users"></i></button>
                     <button id="me_button" class="header_button tablink" ><i class="fas fa-user"></i></button>
                 </div>
                 
-                <div id="test_div">
-                    <div id="message_box" class="tabcontent">
-                        <div id="message_window" ></div>
-                        <div id="message_input_and_button" class="input_and_button">
-                            <input type="text" id="message_input" placeholder="Type ur message here...">
-                            <button id="emoji_button" class="header_button"><i class="fas fa-icons"></i></button>
-                            <button id="message_button" class="header_button"><i class="fas fa-envelope"></i></button>
-                        </div>
-                    </div>
-
-                    <div id="users_box" class="tabcontent window"></div>
-
-                    <div id="me_box" class="tabcontent">
-                        <p>Your name: </p>
-                        <p id="nickname">user</p>
-                        <button id="change_nickname_button" class="header_button">CHANGE NAME</button>
-                        
+                <div id="message_box" class="tabcontent">
+                    <div id="message_window" ></div>
+                    <div id="message_input_and_button" class="input_and_button">
+                        <input type="text" id="message_input" placeholder="Type ur message here...">
+                        <button id="emoji_button" class="header_button"><i class="fas fa-icons"></i></button>
+                        <button id="message_button" class="header_button"><i class="fas fa-envelope"></i></button>
                     </div>
                 </div>
+
+                <div id="users_box" class="tabcontent">
+                    <div id="users_list"></div>
+                </div>
+
+                <div id="me_box" class="tabcontent">
+                    <p>Your name: </p>
+                    <p id="nickname">user</p>
+                    <button id="change_nickname_button" class="header_button">CHANGE NAME</button>
+                    
+                </div>
+
     
             </div>
             

@@ -8,17 +8,22 @@ const server = http.createServer(express)
 const wss = new WebSocket.Server({ server })
 
 const users = []
+let id = 0
 
 class User{
-    constructor(nick, socket){
+    constructor(nick, socket, id){
         this.ws = socket
-        this.message = {video:{
+        this.id = id
+        this.message = {
+                        send_time: 0,
+                        video:{
                             id: "",
                             link: "",
                             time: 0,
-                            playing: true
+                            playing: true,
+                            user_id: 0,
                             },
-                        type: "normal",
+                        type: "",
                         user:{
                             nick: nick,
                             info: ""
@@ -30,6 +35,10 @@ class User{
                         text_message:{
                             text: "",
                             sender: ""
+                        },
+                        error: {
+                            type: "",
+                            text: "",
                         }
         }
     }
@@ -39,7 +48,9 @@ class User{
         this.ws.send(JSON.stringify(this.message))
     }
 
-    getVideo(){
+    getVideo(new_user){
+        this.message.video.user_id = new_user
+        console.log(new_user + ' is updating\n\n' + JSON.stringify(this.message) + '\n')
         this.message.type = 'return'
         this.ws.send(JSON.stringify(this.message))
     }
@@ -54,6 +65,11 @@ class User{
         this.ws.send(JSON.stringify(this.message))
     }
 
+    returnError(){
+        this.message.type = 'error'
+        this.ws.send(JSON.stringify(this.message))
+    }
+
     displayInfo(){
         console.log('\nick: ' + this.message.user.nick + '\nmessage: \n' + this.message);
     }
@@ -62,8 +78,8 @@ class User{
 wss.on('connection', ws =>{
     console.log('********\nnew client connected\nusers number: ' + (users.length + 1))
     let nick = 'user' + Math.floor(Math.random()*1000)
-
-    let user = new User(nick, ws)
+    console.log('user_id: ' + id)
+    let user = new User(nick, ws, id)
     
     if (users.length == 0){
         let jsonData = require('./ids.json')
@@ -74,12 +90,11 @@ wss.on('connection', ws =>{
     }
     else{
         users.push(user)
-        users[0].getVideo()
-        console.log(users[0].message)
+        users[0].getVideo(id)
     }
-    
+    id += 1
+
     ws.on('message', m => {
-        console.log(m)
         let msg = JSON.parse(m)
         let new_id = getID(msg.video.link)
         if (msg.video.link == ''){
@@ -90,27 +105,32 @@ wss.on('connection', ws =>{
             console.log('retarded user')
         }
         if (msg.type == 'normal'){
+            console.log('normal message: \n' + m)
             for (i = 0; i < users.length; i++){
-                users[i].message.video.id = new_id
-                users[i].message.video.link = msg.video.link
-                users[i].message.video.time = msg.video.time
-                users[i].message.video.playing = msg.video.playing
-                users[i].updateVideo()
+                if (users[i].ws != ws){
+                    users[i].message.send_time = msg.send_time
+                    users[i].message.video.id = new_id
+                    users[i].message.video.link = msg.video.link
+                    users[i].message.video.time = msg.video.time
+                    users[i].message.video.playing = msg.video.playing
+                    users[i].updateVideo()
+                }
             }
         }
         else if (msg.type == 'return'){
-            console.log('useres: ')
+            console.log('returned message: \n' + m)
             for (i = 0; i < users.length; i++){
-                users[i].message.video.id = msg.video.id
-                users[i].message.video.link = msg.video.link
-                users[i].message.video.time = msg.video.time
-                users[i].message.video.playing = msg.video.playing
-                console.log((i + 1) + '. ' + users[i].message.user.nick)
+                if (users[i].id == msg.video.user_id){
+                    users[i].message.send_time = msg.send_time
+                    users[i].message.video.id = msg.video.id
+                    users[i].message.video.link = msg.video.link
+                    users[i].message.video.time = msg.video.time
+                    users[i].message.video.playing = msg.video.playing
+                    users[i].updateVideo()
+                    console.log('return message sended to: \n' + users[i].message.user.nick)
+                }
             }
-            console.log('received time: ' + msg.video.time)
-            console.log(users[users.length - 1].message.user.nick)
-            console.log(users[users.length - 1].message)
-            users[users.length - 1].updateVideo()
+            
         }
         else if (msg.type == 'update_nick'){
             let temp = 0
@@ -119,16 +139,21 @@ wss.on('connection', ws =>{
                     temp += 1
                 }
             }
-            if (temp == 1){
-                msg.user.nick = msg.user.nick + '1'
-            }
+
             for (i = 0; i < users.length; i++){
                 if (ws == users[i].ws){
-                    users[i].message.user.nick = msg.user.nick
-                    users[i].message.user.info = msg.user.info
+                    if (temp == 0){
+                        users[i].message.user.nick = msg.user.nick
+                        users[i].message.user.info = msg.user.info
+                        updateOnlineUsersAll() 
+                    }
+                    else{
+                        users[i].message.error.type = 'nick'
+                        users[i].message.error.text = 'nick used by another user'
+                        users[i].returnError()
+                    }
                 }
             }
-            updateOnlineUsersAll()  
         }
         else if (msg.type == 'text_message'){
 
@@ -161,7 +186,10 @@ wss.on('connection', ws =>{
             }
         }
         
-        users.splice(pos, 1);
+        users.splice(pos, 1)
+        if (users.length == 0){
+            id = 0
+        }
         console.log('********\nuser ' + nick + ' disconnected\nusers number: ' + users.length)
         updateOnlineUsersAll()
     })
@@ -204,11 +232,11 @@ function getID(link){
         else{
             if (temp_bool == true){
                 id += link.charAt(i)
+                }
             }
         }
-    }
     return id
-}
+    }
 
 server.listen(port, () => {
     console.log(`Server running at http://${hostname}:${port}/`)

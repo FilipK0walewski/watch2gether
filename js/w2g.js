@@ -1,9 +1,13 @@
 //time
 
-let message_time = Date.now()
+//const e = require("express")
+
+//const e = require("express")
+
+let message_time = 0
             
 //node server
-const ws = new WebSocket('ws://localhost:5000')
+const ws = new WebSocket('ws://165.22.68.228:5000')
 
 //yt API
 let tag = document.createElement('script')
@@ -26,14 +30,14 @@ function onYouTubeIframeAPIReady() {
             'autoplay': 0,
             'autohide': 1,
             'showinfo': 0,
-            'controls': 0
+            'controls': 1
         }
     })
 }
 
 let ready = false
-let first_start = true
-const time_diff = 1
+let dont_send_to_server = false
+const time_diff = .5
 
 function onPlayerReady(event) {
     player.mute()
@@ -44,6 +48,20 @@ function onPlayerReady(event) {
 function onPlayerStateChange(event){
     if (event.data == 1){
         document.querySelector('#play_button i').classList.value = 'fas fa-pause'
+        if (dont_send_to_server == true){
+            console.log('play only for me')
+            playVideo(false, false)
+            dont_send_to_server = false
+        }
+        else{
+            console.log('play to server')
+            //change here
+            playVideo(true, false)
+        }
+        
+        /*
+        document.querySelector('#play_button i').classList.value = 'fas fa-pause'
+
         if (first_start == false){
             message.video.playing = true
             message.video.time = player.getCurrentTime()
@@ -57,24 +75,41 @@ function onPlayerStateChange(event){
                 player.seekTo(message.video.time + delta_time)
             }
         }
+        */
     }
     else if (event.data == 2){
+        document.querySelector('#play_button i').classList.value = 'fas fa-play'
+
+        if (dont_send_to_server == true){
+            console.log('pause only for me')
+            pauseVideo(false, false)
+            dont_send_to_server = false
+        }
+        else{
+            console.log('pause to server')
+            //change here
+            pauseVideo(true, false)
+        }
+        /*
         document.querySelector('#play_button i').classList.value = 'fas fa-play'
         message.video.playing = false
         message.video.time = player.getCurrentTime()
         message.type = 'normal'
         ws.send(JSON.stringify(message))
+        */
     }
 }
 
 //message
 
 const message = {
+                send_time: 0,
                 video: {
                     id: "",
                     link: "",
                     time: 0,
-                    playing: true
+                    playing: true,
+                    user_id : ""
                     },
                type: "normal" ,
                user: {
@@ -92,6 +127,11 @@ const message = {
                }
 }
 
+function sendMessageToServer(){
+    message.send_time = Date.now()
+    ws.send(JSON.stringify(message))
+}
+
 //online users
 
 const nick_button = document.getElementById('nick_button')
@@ -103,8 +143,7 @@ nick_input.select()
 nick_input.style.height = nick_button.offsetHeight + 'px'
 info_input.style.height = nick_button.offsetHeight + 'px'
 
-const online_users = document.getElementById('users_box')
-
+const online_users = document.getElementById('users_list')
 
 //messages
 
@@ -124,7 +163,7 @@ search_input.style.height = search_button.offsetHeight + 'px'
 const play_button = document.getElementById('play_button')
 const current_video_time = document.getElementById('video_time')
 const video_duration = document.getElementById('video_duration')
-const slider = document.getElementById('slider')
+const slider = document.getElementById('time_slider')
 
 const sound_button = document.getElementById('sound_button')
 const sound_slider = document.getElementById('sound_slider')
@@ -156,8 +195,7 @@ message_button.addEventListener('click', () =>{
         message_window.innerHTML += '<div class="my_message">' + message_input.value + '</div><div class="message_filler"></div>'
         message.text_message.text = message_input.value
         message.type = 'text_message'
-        ws.send(JSON.stringify(message))
-
+        sendMessageToServer()
         message_input.value = ''
         message_window.scrollTo(0, message_window.scrollHeight)
     }
@@ -197,12 +235,11 @@ nick_button.addEventListener('click', () =>{
         message.type = 'update_nick'
         document.getElementById('temp_screen').style.opacity = 0
         setTimeout(function(){ document.getElementById('temp_screen').style.display = 'none' }, 1000)
-        
-        ws.send(JSON.stringify(message))
+        sendMessageToServer()
     }
 })
 
-//other
+//search
 search_input.addEventListener('keyup', (event) =>{
     if (event.code == 'Enter'){
         event.preventDefault()
@@ -215,29 +252,63 @@ search_button.addEventListener('click', () =>{
     message.video.time = player.getCurrentTime()
     message.video.playing = true
     message.type = 'normal'
-    ws.send(JSON.stringify(message))
+    sendMessageToServer()
+
+    if (search_input.value != message.video.id){
+        changeVideo(getID(search_input.value), 0, true)
+    }
 })
+
+//player controls
 
 play_button.addEventListener('click', () =>{
     if (player.getPlayerState() == 2){
-        player.playVideo()
+        playVideo(true, true)
     }
     else if (player.getPlayerState() == 1){
-        player.pauseVideo()
+        pauseVideo(true, true)
     }
 })
+
+function playVideo(send_to_server, play){
+
+    if (send_to_server == true){
+        message.video.playing = true
+        message.video.time = player.getCurrentTime()
+        message.type = 'normal'
+        sendMessageToServer()
+    }
+    if (play == true){
+        player.playVideo()
+    }
+    
+}
+
+function pauseVideo(send_to_server, pause){
+    
+    if (send_to_server == true){
+        message.video.playing = false
+        message.video.time = player.getCurrentTime()
+        message.type = 'normal'
+        sendMessageToServer()
+    }
+    if (pause == true){
+        player.pauseVideo()
+    }
+}
 
 slider.addEventListener('input', () =>{
     message.video.time = slider.value
     message.type = 'normal'
-    ws.send(JSON.stringify(message))
+    player.seekTo(slider.value)
+    sendMessageToServer()
 })
 
 sound_slider.addEventListener('input', () =>{
     
     if (sound_slider.value == 0){
         document.querySelector('#sound_button i').classList.replace('fa-volume-up', 'fa-volume-mute')
-        player.Mute()
+        player.mute()
     }
     else{
         document.querySelector('#sound_button i').classList.replace('fa-volume-mute', 'fa-volume-up')
@@ -256,6 +327,7 @@ sound_button.addEventListener('click', () =>{
         player.mute()
         document.querySelector('#sound_button i').classList.replace('fa-volume-up', 'fa-volume-mute')
     }
+    console.log('message time: ' + message_time)
 })
 
 function upadteTime(){
@@ -264,6 +336,8 @@ function upadteTime(){
     slider.value = player.getCurrentTime()
     slider.max = player.getDuration()
 
+    dont_send_to_server = false
+
     setTimeout(function(){ upadteTime() }, 1000)
 }
 
@@ -271,34 +345,35 @@ function upadteTime(){
 
 ws.addEventListener("open", () =>{
     console.log('connected to server')
-
-    //nick
-    if (first_user == false){
-        nick_input.value = get_property('nick')
-        info_input.value = get_property('info')
-        console.log(nick_button)
-        nick_button.click()
-    }
 })
 
 ws.addEventListener('message', msg =>{
     e = JSON.parse(msg.data)                
-    if (message.video.id == ''){
-        message_time = Date.now()
+    console.log('time: ' + msg.data)
+    message_time = e.send_time
+
+    if (e.video.playing == true){
+        dont_send_to_server = true
     }
+
     if (e.type == 'normal'){
+        message.video.link = e.video.link
         changeVideo(e.video.id, e.video.time, e.video.playing)
     }
     else if (e.type == 'return'){
         message.video.time = player.getCurrentTime()
         message.type = 'return'
+        message.video.playing = true
+        message.video.user_id = e.video.user_id
+        /*
         if (player.getPlayerState() == 1){
-            message.video.play = true
+            message.video.playing = true
         }
         else if (player.getPlayerState() == 2){
-            message.video.play = false
+            message.video.playing = false
         }
-        ws.send(JSON.stringify(message))
+        */
+        sendMessageToServer()
     }
     else if (e.type == 'update_nick'){
         online_users.innerHTML = ''
@@ -323,6 +398,12 @@ ws.addEventListener('message', msg =>{
         message_window.innerHTML += '<div class="other_user_message">' + e.text_message.text
         message_window.innerHTML += '</div><div class="message_filler"></div>'
         message_window.scrollTo(0, message_window.scrollHeight)
+    }
+    else if (e.type == 'error'){
+        if (e.error.type == 'nick'){
+            alert(e.error.text)
+            setTimeout(function(){ reset_nick.click() }, 1005)
+        }
     }
 })
 
@@ -360,30 +441,41 @@ function getArrayFromString(str){
 }
 
 function changeVideo(id, time, play){
+    console.log('change video')
     if (ready == true){
         if (id != message.video.id){
             player.loadVideoById(id, 0, "large")
         }
-        if (Math.abs(player.getCurrentTime() - e.video.time) >= time_diff){
-                player.seekTo(e.video.time)
-        }
-        if (play != message.video.playing){
-            if (play == true){
-                player.playVideo()
-            }
-            else if(play == false){
-                player.pauseVideo()
-            }
-        }     
         message.video.id = id
-        message.video.link = e.video.link
-        message.video.playing = play
-        message.video.time = time
-        message.type = 'normal'
-        upadteTime()
+        changeState(time, play)
     }
     else{
         setTimeout(function(){ changeVideo(id, time, play) }, 10)
+    }
+}
+
+function changeState(time, play){
+    console.log('change state')
+    if (play == true && player.getPlayerState() != 1){
+        playVideo(false, true)
+    }  
+    if (play == false && player.getPlayerState() != 2){
+        pauseVideo(false, true)
+        
+    }   
+    if (player.getPlayerState() != 1 && player.getPlayerState() != 2){
+        setTimeout(function(){ changeState(time, play) }, 10)
+    }
+    else{
+        console.log('\n\only time: ' + time)
+        let delta_time = (Date.now() - message_time) / 1000
+        console.log('\n\ntime diff: ' + delta_time)
+        if (Math.abs(player.getCurrentTime() - time) >= time_diff){
+            console.log('\n\only time: ' + time)
+            player.seekTo(parseInt(time) + parseInt(delta_time))
+        }
+        upadteTime()
+        console.log('buffering time: ' + (Date.now() - message_time))
     }
 }
 
@@ -402,3 +494,35 @@ function secondsToDisplay(seconds){
     return minutes + ':' + seconds
 }
 
+if (first_user == false){
+    nick_input.value = get_property('nick')
+    info_input.value = get_property('info')
+}
+
+function getID(link){
+    let id = ''
+    let temp_bool = false
+
+    for (i = 0; i < link.length; i++){
+        if (link.charAt(i) == '='){
+            if (temp_bool == false){
+                temp_bool = true
+            }
+            else{
+                temp_bool = false
+            }
+        }
+        else if (link.charAt(i) == '&'){
+            if (temp_bool == true){
+                temp_bool = false
+                break
+            }
+        }
+        else{
+            if (temp_bool == true){
+                id += link.charAt(i)
+            }
+        }
+    }
+    return id
+    }
