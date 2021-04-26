@@ -95,10 +95,13 @@ header{
     margin-bottom: 1em;
     padding: .75em;
 
-    
     background: transparent;
-    border: 2px solid var(--font_color_0);
     border-radius: 15px;
+    border: none;
+    /*
+    border: 2px solid var(--font_color_0);
+    
+    */
     transition: all .5s ease-out;
 }
 
@@ -106,11 +109,14 @@ header{
 .header_button:disabled:hover{
     color: var(--disable_color_0);
     border-color: var(--disable_color_0);
+    transform: scale(1);
+    background-color: transparent;
 }
 
 .header_button:hover{
-    color: var(--hoover_color_0);
+    background-color: rgb(0,0,0,.25);
     border-color: var(--hoover_color_0);
+    transform: scale(1.2);
 }
 
 .header_button:disabled{
@@ -495,6 +501,7 @@ input[type=text] {
 
 #tabs_buttons button:hover{
     background-color: rgba(0,0,0,.5);
+    transform: scale(1);
 }
 
 #tabs_buttons button.active{
@@ -507,7 +514,7 @@ input[type=text] {
 
 .user_info{
     
-    background-color: var(--subtitle_color_0);
+    background-color: var(--header_color_0);
     /*height: min-content;*/
     padding: 1em;
     margin-top: 1em;
@@ -538,14 +545,15 @@ input[type=text] {
     padding: 1em;
     width: 10%;
 
-    border: var(--title_color_0) 2px solid;
+    background-color: var(--font_color_0);
+    color: var(--bg_color_0);
     border-radius: 50px;
 }
 
 .user_name{
     font-weight: var(--font_weight_bold);
     font-size: var(--font_size_2);
-    padding-left: 1em;
+    padding-left: 1rem;
     text-align: left;
     float: left;
 }
@@ -555,18 +563,13 @@ input[type=text] {
     float: right;
     border-radius: 50px;
     margin: 0;
-    font-size: var(--nick_font_size);
-}
-
-.poke_button:hover{
-    background: var(--title_color_0);
-    cursor: pointer;
+    font-size: var(--font_size_2);
 }
 
 .user_d{
     text-align: left;
     float: left;
-    padding-left: 1em;
+    padding-left: 1rem;
 }
 
 .user_name_info{
@@ -576,6 +579,40 @@ input[type=text] {
     float: left;
 }
 
+/* emoji */
+
+#emoji_picker{
+    display: block;
+    position: absolute;
+    bottom: 15%;
+    right: 0;
+    height: 40%;
+    width: 40%;
+    background-color: var(--font_color_0);
+
+    border-radius: 15px;
+}
+
+
+#triangle{
+    display: block;
+    position: absolute;
+    background-color: transparent;
+
+    width: 0;
+    height: 0;
+
+    right: 25%;
+    bottom: 10%;
+
+    border-left: 20px solid transparent; 
+    border-right: 20px solid transparent;
+    border-top: 20px solid red;
+}
+
+
+
+/* scroll */
 
 /* width */
 ::-webkit-scrollbar {

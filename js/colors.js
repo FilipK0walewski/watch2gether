@@ -1,11 +1,12 @@
 //colors
-const bg_light_0 = '#2b0f54'
-const bg_light_1 = '#3368dc'
-const font_light_0 = '#fff7f8'
-const font_light_1 = '#49e7ec'
-const font_light_2 = '#ffda45'
-const hover_light = '#ab1f65'
-const disable_light = '#ff8142'
+const bg_light_0 = '#0f052d'
+const bg_light_1 = '#203671'
+
+const font_light_0 = '#5fc75d'
+const font_light_1 = '#5fc75d'
+const font_light_2 = '#5fc75d'
+const hover_light = '#36868f'
+const disable_light = '#36868f'
 
 const bg_dark_0 = '#130208'
 const bg_dark_1 = '#1f0510'

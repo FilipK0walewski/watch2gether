@@ -1,13 +1,8 @@
 //time
-
 //const e = require("express")
-
-//const e = require("express")
-
-let message_time = 0
             
 //node server
-const ws = new WebSocket('ws://165.22.68.228:5000')
+const ws = new WebSocket('ws://localhost:5000')
 
 //yt API
 let tag = document.createElement('script')
@@ -30,73 +25,52 @@ function onYouTubeIframeAPIReady() {
             'autoplay': 0,
             'autohide': 1,
             'showinfo': 0,
-            'controls': 1
+            'controls': 0
         }
     })
 }
 
+
+// start variables
+
 let ready = false
-let dont_send_to_server = false
-const time_diff = .5
+let first_start = true
+let message_time = 0
+//let dont_send_to_server = false
+
+// on player ready
 
 function onPlayerReady(event) {
     player.mute()
+    player.loadVideoById(message.video.id, 0, "large")
+    upadteTime()
     event.target.playVideo()
     ready = true
 }
 
-function onPlayerStateChange(event){
-    if (event.data == 1){
-        document.querySelector('#play_button i').classList.value = 'fas fa-pause'
-        if (dont_send_to_server == true){
-            console.log('play only for me')
-            playVideo(false, false)
-            dont_send_to_server = false
-        }
-        else{
-            console.log('play to server')
-            //change here
-            playVideo(true, false)
-        }
-        
-        /*
-        document.querySelector('#play_button i').classList.value = 'fas fa-pause'
+// player states
 
-        if (first_start == false){
-            message.video.playing = true
-            message.video.time = player.getCurrentTime()
-            message.type = 'normal'
-            ws.send(JSON.stringify(message))
-        }
-        else{
-            let delta_time = (Date.now() - message_time) / 1000
-            first_start = false
-            if (Math.abs(player.getCurrentTime() - message.video.time) >= time_diff){
-                player.seekTo(message.video.time + delta_time)
+function onPlayerStateChange(event){
+    document.querySelector('#play_button i').classList.value = 'fas fa-pause'
+    if (event.data == 1){
+        if (first_start == true){
+            if (message.video.playing == false){
+                player.seekTo(parseFloat(message.video.time))
+                player.pauseVideo()
             }
+            else{
+                let delta_time = (Date.now() - message_time) / 1000
+                console.log('delta time: ' + delta_time)
+                player.seekTo(parseFloat(message.video.time) + parseFloat(delta_time))
+                first_start = false
+            }      
         }
-        */
     }
     else if (event.data == 2){
         document.querySelector('#play_button i').classList.value = 'fas fa-play'
-
-        if (dont_send_to_server == true){
-            console.log('pause only for me')
-            pauseVideo(false, false)
-            dont_send_to_server = false
+        if (first_start == true){
+            first_start = false
         }
-        else{
-            console.log('pause to server')
-            //change here
-            pauseVideo(true, false)
-        }
-        /*
-        document.querySelector('#play_button i').classList.value = 'fas fa-play'
-        message.video.playing = false
-        message.video.time = player.getCurrentTime()
-        message.type = 'normal'
-        ws.send(JSON.stringify(message))
-        */
     }
 }
 
@@ -152,7 +126,6 @@ const message_window = document.getElementById('message_window')
 const message_button = document.getElementById('message_button')
 const message_input = document.getElementById('message_input')
 
-console.log('test of height: ' + message_button.offsetHeight + 'px')
 message_input.style.height = nick_button.offsetHeight + 'px'
 
 //buttons
@@ -240,6 +213,7 @@ nick_button.addEventListener('click', () =>{
 })
 
 //search
+
 search_input.addEventListener('keyup', (event) =>{
     if (event.code == 'Enter'){
         event.preventDefault()
@@ -248,14 +222,16 @@ search_input.addEventListener('keyup', (event) =>{
 })
 
 search_button.addEventListener('click', () =>{
-    message.video.link = search_input.value
-    message.video.time = player.getCurrentTime()
-    message.video.playing = true
-    message.type = 'normal'
-    sendMessageToServer()
-
-    if (search_input.value != message.video.id){
-        changeVideo(getID(search_input.value), 0, true)
+    
+    let brand_new_id = getID(search_input.value)
+    if (brand_new_id != message.video.id && brand_new_id != ''){
+        message.video.link = search_input.value
+        message.video.id = brand_new_id
+        message.video.time = 0
+        message.video.playing = true
+        message.type = 'normal'
+        sendMessageToServer()
+        player.loadVideoById(brand_new_id, 0, "large")
     }
 })
 
@@ -349,38 +325,56 @@ ws.addEventListener("open", () =>{
 
 ws.addEventListener('message', msg =>{
     e = JSON.parse(msg.data)                
-    console.log('time: ' + msg.data)
-    message_time = e.send_time
-
-    if (e.video.playing == true){
-        dont_send_to_server = true
-    }
+    //message_time = e.send_time
+    message_time = Date.now()
 
     if (e.type == 'normal'){
-        message.video.link = e.video.link
-        changeVideo(e.video.id, e.video.time, e.video.playing)
+        console.log('\nnormal message:\n' + msg.data)
+        if (ready != true){ /* normal message */
+            message.video = e.video
+        }
+        else{
+            if (e.video.id != message.video.id){
+                player.loadVideoById(e.video.id , 0, "large")
+                    if (e.video.playing == false){
+                        player.pauseVideo()
+                    }
+            }
+            else{
+                if (message_time != 0){
+                    let delta_time = (Date.now() - message_time) / 1000
+                    player.seekTo(parseFloat(e.video.time) + parseFloat(delta_time))
+                }
+
+                if (e.video.playing == true && player.getPlayerState() != 1){
+                    player.playVideo()
+                }
+                else if (e.video.playing == false && player.getPlayerState() != 2){
+                    player.pauseVideo()
+                }
+                
+            }
+            message.video = e.video
+        }
     }
-    else if (e.type == 'return'){
+    else if (e.type == 'return'){ /* return video message */
+        console.log('\nreturn message:\n' + msg.data)
         message.video.time = player.getCurrentTime()
         message.type = 'return'
-        message.video.playing = true
         message.video.user_id = e.video.user_id
-        /*
         if (player.getPlayerState() == 1){
             message.video.playing = true
         }
         else if (player.getPlayerState() == 2){
             message.video.playing = false
         }
-        */
         sendMessageToServer()
     }
-    else if (e.type == 'update_nick'){
+    else if (e.type == 'update_nick'){ /* set nick message */
         online_users.innerHTML = ''
         document.getElementById('nickname').innerHTML = e.user.nick 
         let users = getArrayFromString(e.online_users.nicks)
         let infos = getArrayFromString(e.online_users.infos)
-        console.log('info: ' + infos)
         let i = 0
         users.forEach((user) =>{
             online_users.innerHTML += '<div class="user_info"><div class="user_icon"><i class="fas fa-user"></i></div><div class="user_name_info"><div id="u_' + i + '" class="user_name">' + user + '</div><div class="user_d">' + infos[i] + '</div></div><button id="poke_' + i + '" class="poke_button header_button"><i class="fas fa-hand-point-left"></i></button></div>'
@@ -388,8 +382,7 @@ ws.addEventListener('message', msg =>{
         })
         addPokeListeners()
     }
-    else if (e.type == 'text_message'){
-        
+    else if (e.type == 'text_message'){ /* text message */
         if (temp_nick != e.text_message.sender){
             message_window.innerHTML += '<div class="sender_nick">' + e.text_message.sender 
             message_window.innerHTML += '</div><div class="message_filler"></div>'
@@ -426,57 +419,18 @@ function addPokeListeners(){
 }
 
 function getArrayFromString(str){
-    let users = []
+    let array = []
     let element = ''
     for (i = 0; i < str.length; i++){
         if (str.charAt(i) == '_'){
-            users.push(element)
+            array.push(element)
             element = ''
         }
         else{
             element += str.charAt(i)
         }
     }
-    return users
-}
-
-function changeVideo(id, time, play){
-    console.log('change video')
-    if (ready == true){
-        if (id != message.video.id){
-            player.loadVideoById(id, 0, "large")
-        }
-        message.video.id = id
-        changeState(time, play)
-    }
-    else{
-        setTimeout(function(){ changeVideo(id, time, play) }, 10)
-    }
-}
-
-function changeState(time, play){
-    console.log('change state')
-    if (play == true && player.getPlayerState() != 1){
-        playVideo(false, true)
-    }  
-    if (play == false && player.getPlayerState() != 2){
-        pauseVideo(false, true)
-        
-    }   
-    if (player.getPlayerState() != 1 && player.getPlayerState() != 2){
-        setTimeout(function(){ changeState(time, play) }, 10)
-    }
-    else{
-        console.log('\n\only time: ' + time)
-        let delta_time = (Date.now() - message_time) / 1000
-        console.log('\n\ntime diff: ' + delta_time)
-        if (Math.abs(player.getCurrentTime() - time) >= time_diff){
-            console.log('\n\only time: ' + time)
-            player.seekTo(parseInt(time) + parseInt(delta_time))
-        }
-        upadteTime()
-        console.log('buffering time: ' + (Date.now() - message_time))
-    }
+    return array
 }
 
 function secondsToDisplay(seconds){
@@ -492,11 +446,6 @@ function secondsToDisplay(seconds){
     }
 
     return minutes + ':' + seconds
-}
-
-if (first_user == false){
-    nick_input.value = get_property('nick')
-    info_input.value = get_property('info')
 }
 
 function getID(link){
@@ -526,3 +475,8 @@ function getID(link){
     }
     return id
     }
+
+if (first_user == false){
+    nick_input.value = get_property('nick')
+    info_input.value = get_property('info')
+}
