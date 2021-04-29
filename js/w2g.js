@@ -5,8 +5,9 @@
 const ws = new WebSocket('ws://localhost:5000')
 
 //yt API
-let tag = document.createElement('script')
+const key = 'AIzaSyAqmJjxim2pLjYSc_hUY17v5DYlt_A162k'
 
+let tag = document.createElement('script')
 tag.src = "https://www.youtube.com/iframe_api"
 let firstScriptTag = document.getElementsByTagName('script')[0]
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
@@ -35,22 +36,34 @@ function onYouTubeIframeAPIReady() {
 
 let ready = false
 let first_start = true
+
 let message_time = 0
-//let dont_send_to_server = false
+
+// prevents resending video status to another users
+let got_message = false
 
 // on player ready
-
+// vide change state to 1 and then to 2 istead go for 2
 function onPlayerReady(event) {
     player.mute()
     player.loadVideoById(message.video.id, 0, "large")
+    //player.playVideo()
     upadteTime()
     event.target.playVideo()
     ready = true
 }
 
 // player states
-
+// separate got message on first start and non first start
 function onPlayerStateChange(event){
+
+    if (got_message == true){
+        console.log('FIRST status change after received message: ' + event.data)
+    }
+    else{
+        console.log('ANOTHER status change after received message: ' + event.data)
+    }
+
     document.querySelector('#play_button i').classList.value = 'fas fa-pause'
     if (event.data == 1){
         if (first_start == true){
@@ -59,19 +72,53 @@ function onPlayerStateChange(event){
                 player.pauseVideo()
             }
             else{
-                let delta_time = (Date.now() - message_time) / 1000
-                console.log('delta time: ' + delta_time)
-                player.seekTo(parseFloat(message.video.time) + parseFloat(delta_time))
+                if (message.video.time != 0){
+                    let delta_time = (Date.now() - message_time) / 1000
+                    console.log('delta time: ' + delta_time)
+                    player.seekTo(parseFloat(message.video.time) + parseFloat(delta_time))
+                }
+                else{
+                    player.playVideo()
+                }
                 first_start = false
             }      
         }
+        else{
+            if (got_message == true && message.video.playing == true){
+                console.log('next messages will be sent to another users')
+                got_message = false
+            }
+            else{
+                message.video.playing = true
+                message.video.time = player.getCurrentTime()
+                message.type = 'normal'
+                sendMessageToServer()
+            }
+        }
+        
     }
     else if (event.data == 2){
         document.querySelector('#play_button i').classList.value = 'fas fa-play'
         if (first_start == true){
             first_start = false
         }
+        else{
+            if (got_message == true && message.video.playing == false){
+                console.log('next messages will be sent to another users')
+                got_message = false
+            }
+            else{
+                message.video.playing = false
+                message.video.time = player.getCurrentTime()
+                message.type = 'normal'
+                sendMessageToServer()
+            }
+        }
     }
+    else if (event.data == 3){
+        got_message = true
+    }
+    
 }
 
 //message
@@ -80,7 +127,6 @@ const message = {
                 send_time: 0,
                 video: {
                     id: "",
-                    link: "",
                     time: 0,
                     playing: true,
                     user_id : ""
@@ -102,6 +148,7 @@ const message = {
 }
 
 function sendMessageToServer(){
+    console.log(message.type + ' message sended')
     message.send_time = Date.now()
     ws.send(JSON.stringify(message))
 }
@@ -131,6 +178,7 @@ message_input.style.height = nick_button.offsetHeight + 'px'
 //buttons
 const search_button = document.getElementById('search_button')
 const search_input = document.getElementById('server_input')
+const videos_list = document.getElementById('videos_list')
 search_input.style.height = search_button.offsetHeight + 'px'
 
 const play_button = document.getElementById('play_button')
@@ -222,56 +270,64 @@ search_input.addEventListener('keyup', (event) =>{
 })
 
 search_button.addEventListener('click', () =>{
-    
-    let brand_new_id = getID(search_input.value)
-    if (brand_new_id != message.video.id && brand_new_id != ''){
-        message.video.link = search_input.value
-        message.video.id = brand_new_id
+    videos_list.scrollTo(0, 0)
+    searchByKeyword(search_input.value, 10)
+    search_list_button.click()
+})
+
+const Http = new XMLHttpRequest()
+function searchByKeyword(keyword, max_results){
+    let url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=' + max_results + '&q=' + keyword + '&type=video&key=' + key
+    Http.open('GET', url)
+    Http.send()
+}
+
+Http.onreadystatechange = (e) =>{
+    let http_respond = Http.responseText,
+        respond = JSON.parse(http_respond),
+        img_url = '',
+        title = '',
+        channel = '',
+        //views = '',
+        v_id = ''
+        //duration = 0
+
+    videos_list.innerHTML = ''
+    console.log(respond)
+    for (i = 0; i < respond.items.length; i++){
+        v_id = respond.items[i].id.videoId
+        img_url = respond.items[i].snippet.thumbnails.high.url
+        title = respond.items[i].snippet.title
+        channel = respond.items[i].snippet.channelTitle
+        videos_list.innerHTML += '<div class="video_list_item" onclick=changeVideo("' + String(v_id) + '")>' + '<div class="video_icon"><img class="img_fill" src="' + img_url + '"></div><div class="v_info"><div class="v_title">' + title + '</div><div class="v_channel">' + channel + '</div></div></div>'
+
+    }
+}
+
+function changeVideo(id){
+    console.log('testing new function!!!\nid: ' + id)
+
+    if (id != message.video.id){
+        player.loadVideoById(String(id), 0, "large")
+        console.log('loading')
+        message.video.id = id
         message.video.time = 0
         message.video.playing = true
         message.type = 'normal'
         sendMessageToServer()
-        player.loadVideoById(brand_new_id, 0, "large")
     }
-})
+}
 
 //player controls
 
 play_button.addEventListener('click', () =>{
     if (player.getPlayerState() == 2){
-        playVideo(true, true)
-    }
-    else if (player.getPlayerState() == 1){
-        pauseVideo(true, true)
-    }
-})
-
-function playVideo(send_to_server, play){
-
-    if (send_to_server == true){
-        message.video.playing = true
-        message.video.time = player.getCurrentTime()
-        message.type = 'normal'
-        sendMessageToServer()
-    }
-    if (play == true){
         player.playVideo()
     }
-    
-}
-
-function pauseVideo(send_to_server, pause){
-    
-    if (send_to_server == true){
-        message.video.playing = false
-        message.video.time = player.getCurrentTime()
-        message.type = 'normal'
-        sendMessageToServer()
-    }
-    if (pause == true){
+    else if (player.getPlayerState() == 1){
         player.pauseVideo()
     }
-}
+})
 
 slider.addEventListener('input', () =>{
     message.video.time = slider.value
@@ -325,11 +381,11 @@ ws.addEventListener("open", () =>{
 
 ws.addEventListener('message', msg =>{
     e = JSON.parse(msg.data)                
-    //message_time = e.send_time
-    message_time = Date.now()
 
     if (e.type == 'normal'){
-        console.log('\nnormal message:\n' + msg.data)
+        message_time = e.send_time
+        got_message = true
+        console.log('video update message received')
         if (ready != true){ /* normal message */
             message.video = e.video
         }
@@ -358,14 +414,14 @@ ws.addEventListener('message', msg =>{
         }
     }
     else if (e.type == 'return'){ /* return video message */
-        console.log('\nreturn message:\n' + msg.data)
+        console.log('\nreturn message request\n')
         message.video.time = player.getCurrentTime()
         message.type = 'return'
         message.video.user_id = e.video.user_id
         if (player.getPlayerState() == 1){
             message.video.playing = true
         }
-        else if (player.getPlayerState() == 2){
+        else{
             message.video.playing = false
         }
         sendMessageToServer()
@@ -380,7 +436,6 @@ ws.addEventListener('message', msg =>{
             online_users.innerHTML += '<div class="user_info"><div class="user_icon"><i class="fas fa-user"></i></div><div class="user_name_info"><div id="u_' + i + '" class="user_name">' + user + '</div><div class="user_d">' + infos[i] + '</div></div><button id="poke_' + i + '" class="poke_button header_button"><i class="fas fa-hand-point-left"></i></button></div>'
             i += 1
         })
-        addPokeListeners()
     }
     else if (e.type == 'text_message'){ /* text message */
         if (temp_nick != e.text_message.sender){
@@ -399,24 +454,6 @@ ws.addEventListener('message', msg =>{
         }
     }
 })
-
-function addPokeListeners(){
-    let poke_buttons = document.getElementsByClassName('poke_button')
-    for (i = 0; i < poke_buttons.length; i++){
-        poke_buttons[i].addEventListener('click', (event) => {
-            console.log('event target id: ' + event.target.id)
-            let id = event.target.id.charAt(event.target.id.length - 1)
-            console.log('poke id: ' + 'u_' + id)
-            console.log('user to poke: ' + document.getElementById('u_' + id).innerHTML)
-
-            message.poke.text = 'poke'
-            message.poke.user_to_poke = document.getElementById('u_' + id).innerHTML
-
-            console.log(message)
-
-        })
-    }
-}
 
 function getArrayFromString(str){
     let array = []
