@@ -10,7 +10,6 @@ const wss = new WebSocket.Server({ server })
 //mail
 
 const my_mail = 'kontakt@filipkowalewski.com'
-const kiep_mail = '	lukasz.m.szczepaniec@gmail.com'
 const nodemailer = require('nodemailer')
 
 let transporter = nodemailer.createTransport({
@@ -169,12 +168,7 @@ wss.on('connection', ws =>{
                     if (temp == 0){
                         // mail
                         if (users[i].nick.slice(0, 4) == 'user'){
-                            if (msg.user.nick.toLowerCase() == 'kiep'){
-                                text = 'Dear ' + msg.user.nick + ',\nwelcome to w2g.filipkowalewski.com, enjoy watching funny videos.'
-                                send_mail(mailoptions, text, kiep_mail)
-                            }
                             text = msg.user.nick + ' joined to server.'
-                            
                         }
                         else{
                             text = users[i].nick + ' changed nick to ' + msg.user.nick + '.'
@@ -229,10 +223,6 @@ wss.on('connection', ws =>{
             }
         }
         let time = (Date.now() - users[pos].time) / 1000
-        if (users[pos].nick.toLowerCase() == 'kiep'){
-            text = 'See you soon ' + users[pos].nick + '.'
-            send_mail(mailoptions, text, kiep_mail)
-        }
         text = users[pos].nick + ' disconected from server.\nTime spended on server: ' + time + ' seconds.'
         send_mail(mailoptions, text)
 
