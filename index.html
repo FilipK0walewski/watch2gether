@@ -10,11 +10,17 @@
     </head>
     <body>
         <header>
-                <button class="header_button" id="light_mode_button"><i class="fas fa-sun"></i></button>
-                <button class="header_button" id="dark_mode_button"><i class="fas fa-moon"></i></button>
-                <button class="header_button" id="PL_button">PL</button>
-                <button class="header_button" id="EN_button">EN</button>
-                <button class="header_button" id="menu_button"><i class="fas fa-bars"></i></button>
+            <div class="input_with_button">
+                <input type="text" id="server_input" placeholder="Search">
+                <button class="header_button  player_button" id="search_button"><i class="fas fa-search"></i></button>
+            </div>
+
+            <button class="header_button" id="theme_button"><i class="fas fa-sun"></i></button>
+            <!--
+            <button class="header_button" id="PL_button">PL</button>
+            <button class="header_button" id="EN_button">EN</button>
+            <button class="header_button" id="menu_button"><i class="fas fa-bars"></i></button>
+            -->
         </header>
         <div id="temp_screen">
             <div id="nick_window" class="window">
@@ -27,12 +33,10 @@
         </div>
         <div class="input_screen">
             <div id="server_div">
-                <div class="input_with_button">
-                    <input type="text" id="server_input" placeholder="Enter youtube link">
-                    <button class="header_button  player_button" id="search_button"><i class="fas fa-search"></i></button>
-                </div>
                 <div id="player_and_buttons">
-                    <div id="player"></div>
+                    <div id="player_container">
+                        <div id="player"></div>
+                    </div>
                     <div id="buttons">
                         <button class="header_button player_button player_item" id="play_button"><i class="fas fa-play"></i></button>
                         <span id="video_time" class="player_item"></span> / <span id="video_duration" class="player_item"></span>
@@ -51,40 +55,37 @@
                     <button id="me_button" class="header_button tablink" ><i class="fas fa-user"></i></button>
                     <button id="search_list_button" class="header_button tablink" ><i class="fas fa-video"></i></button>
                 </div>
-                
-                <div id="message_box" class="tabcontent">
-                    <div id="message_window" ></div>
-                    <!--
-                    <div id="emoji_div" class="window">
-                        <div id="emoji_picker"></div>
-                        <div id="triangle"></div>
+                <div id="bg_div">
+                    <div id="message_box" class="tabcontent">
+                        <div id="message_window" ></div>
+                        <!--
+                        <div id="emoji_div" class="window">
+                            <div id="emoji_picker"></div>
+                            <div id="triangle"></div>
+                        </div>
+                        -->
+                        <div id="message_input_and_button" class="input_and_button">
+                            <input type="text" id="message_input" placeholder="Type ur message here...">
+                            <button id="emoji_button" class="header_button"><i class="fas fa-icons"></i></button>
+                            <button id="message_button" class="header_button"><i class="fas fa-envelope"></i></button>
+                        </div>
                     </div>
-                    -->
-                    <div id="message_input_and_button" class="input_and_button">
-                        <input type="text" id="message_input" placeholder="Type ur message here...">
-                        <button id="emoji_button" class="header_button"><i class="fas fa-icons"></i></button>
-                        <button id="message_button" class="header_button"><i class="fas fa-envelope"></i></button>
+
+                    <div id="users_box" class="tabcontent">
+                        <div id="users_list" class="list"></div>
+                    </div>
+
+                    <div id="me_box" class="tabcontent">
+                            <p>Your name: </p>
+                            <p id="nickname">user</p>
+                            <button id="change_nickname_button" class="header_button">CHANGE NAME</button>
+                    </div>
+
+                    <div id="search_list_box" class="tabcontent">
+                        <div id="videos_list" class="list"></div>
                     </div>
                 </div>
-
-                <div id="users_box" class="tabcontent">
-                    <div id="users_list" class="list"></div>
-                </div>
-
-                <div id="me_box" class="tabcontent">
-                    <p>Your name: </p>
-                    <p id="nickname">user</p>
-                    <button id="change_nickname_button" class="header_button">CHANGE NAME</button>
-                    
-                </div>
-
-                <div id="search_list_box" class="tabcontent">
-                    <div id="videos_list" class="list"></div>
-                </div>
-
-    
             </div>
-            
         </div>
         <script src="js/colors.js"></script>
         <script src="js/pierdolnik.js"></script>

@@ -9,7 +9,6 @@ users_button.addEventListener('click', (event) => { openTab(event, 'users')})
 me_button.addEventListener('click', (event) => { openTab(event, 'me')})
 search_list_button.addEventListener('click', (event) => { openTab(event, 'search_list')})
 
-// CHANGE HERE
 function openTab(event, button_name){
     let tabcontent = document.getElementsByClassName('tabcontent')
     let tablinks = document.getElementsByClassName('tablink')
@@ -21,9 +20,8 @@ function openTab(event, button_name){
     for (i = 0; i < tablinks.length; i++){
         tablinks[i].className = tablinks[i].className.replace(' active', '')
     }
-
+    
     document.getElementById(button_name + '_box').style.display = 'flex'
-    //console.log(event.currentTarget.id)
     event.currentTarget.className += ' active'
 }
 
