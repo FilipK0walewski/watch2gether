@@ -5,7 +5,7 @@
 const ws = new WebSocket('ws://localhost:5000')
 
 //yt API
-const key = 'AIzaSyAqmJjxim2pLjYSc_hUY17v5DYlt_A162k'
+const key = 'MY_API_KEY'
 
 let tag = document.createElement('script')
 tag.src = "https://www.youtube.com/iframe_api"
